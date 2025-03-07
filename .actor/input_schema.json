@@ -1,0 +1,21 @@
+{
+    "title": "Newsletter AI Agent",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {
+        "newsRequest": {
+            "title": "News Request",
+            "type": "string",
+            "description": "Your news request",
+            "editor": "textfield",
+            "prefill": "What's going on with the war in Ukraine?"
+        },
+        "OPENAI_API_KEY": {
+            "title": "OpenAI API Key",
+            "type": "string",
+            "description": "The API key to use for prompting ChatGPT.",
+            "editor": "textfield"
+        }
+    },
+    "required": ["newsRequest"]
+}

@@ -45,24 +45,24 @@ try {
     async ({ newsRequest: newsRequest }) => {
       setContextVariable("newsRequest", newsRequest);
       const modelResponse = await agent.invoke(
-        {
-          messages: [new HumanMessage(`
-You are an expert news aggregator. Your task is to turn structured news data into a human-readable output.
+      {
+        messages: [new HumanMessage(`
+          You are an expert news aggregator. Your task is to turn structured news data into a human-readable output.
 
-STEP 1: Based on the user's news request: "${newsRequest}", identify a 1-2 word search query that best represents what news they want.
+          STEP 1: Based on the user's news request: "${newsRequest}", identify a 1-2 word search query that best represents what news they want.
 
-STEP 2: Use fetch_news_tool ONCE with the search query to retrieve news stories.
+          STEP 2: Use fetch_news_tool ONCE with the search query to retrieve news stories.
 
-STEP 3: From the returned news stories:
-- If no stories are found, respond with: "Sorry, I couldn't find any news stories about [search query]."
-- If stories are found, select up to 5 unique and important stories based on titles.
+          STEP 3: From the returned news stories:
+          - If no stories are found, respond with: "Sorry, I couldn't find any news stories about [search query]."
+          - If stories are found, select up to 5 unique and important stories based on titles.
 
-STEP 4: Format the selected stories into a newsletter-style with both markdown and HTML versions. Format this as a JSON object.
-- Return the newsletter JSON object immediately.
-`)]
-        }, {
-          recursionLimit: 10
-        });
+          STEP 4: Format the selected stories into a newsletter-style with both markdown and HTML versions. Format this as a JSON object.
+          - Return the newsletter JSON object immediately.
+        `)]
+      }, {
+        recursionLimit: 10
+      });
       output = modelResponse.structuredResponse;
     }
   );

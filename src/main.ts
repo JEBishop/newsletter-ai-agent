@@ -1,9 +1,12 @@
 import { Actor } from 'apify';
 import { ChatOpenAI } from "@langchain/openai";
-import { HumanMessage, MessageContentComplex } from "@langchain/core/messages";
+import { HumanMessage } from "@langchain/core/messages";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
-import type { Input, Output } from './types.js'
-import { agentTools } from './tools.js'
+import type { Input } from './types.js'
+import { responseSchema } from './types.js';
+import { agentTools } from './tools.js';
+import { setContextVariable } from "@langchain/core/context";
+import { RunnableLambda } from "@langchain/core/runnables";
 
 await Actor.init();
 
@@ -32,67 +35,40 @@ const agentModel = new ChatOpenAI({
 
 const agent = createReactAgent({
   llm: agentModel,
-  tools: agentTools
+  tools: agentTools,
+  responseFormat: responseSchema
 });
 
 try {
-  const finalState = await agent.invoke(
-    {
-      messages: [
-        new HumanMessage(`
-          You are an expert news aggregator. Your task is to turn structured news data into a human-readable output.
+  let output = {};
+  const handleRunTimeRequestRunnable = RunnableLambda.from(
+    async ({ newsRequest: newsRequest }) => {
+      setContextVariable("newsRequest", newsRequest);
+      const modelResponse = await agent.invoke(
+        {
+          messages: [new HumanMessage(`
+You are an expert news aggregator. Your task is to turn structured news data into a human-readable output.
 
-          STEP 1: Based on the user's request: ${newsRequest}, identify a 1-2 word search query that best represents what news they want.
+STEP 1: Based on the user's news request: "${newsRequest}", identify a 1-2 word search query that best represents what news they want.
 
-          STEP 2: Use fetch_news_tool ONCE with the search query to retrieve news stories. 
-          Example: fetch_news_tool("technology")
+STEP 2: Use fetch_news_tool ONCE with the search query to retrieve news stories.
 
-          STEP 3: From the returned news stories:
-          - If no stories are found, respond with: "Sorry, I couldn't find any news stories about [search query]."
-          - If stories are found, select up to 5 unique and important stories based on titles.
+STEP 3: From the returned news stories:
+- If no stories are found, respond with: "Sorry, I couldn't find any news stories about [search query]."
+- If stories are found, select up to 5 unique and important stories based on titles.
 
-          STEP 4: Format the selected stories into a newsletter with both markdown and HTML versions.
-
-          Return the final output as this JSON structure:
-          {
-            "markdown": "Markdown formatted newsletter here",
-            "html": "HTML formatted newsletter here"
-          }
-
-          Note: If fetch_news_tool fails or is unavailable, respond with: "I'm unable to fetch news at the moment. Please try again later or check if fetch_news_tool is properly configured."
-        `)
-      ]
-    }, {
-      recursionLimit: 10
+STEP 4: Format the selected stories into a newsletter-style with both markdown and HTML versions. Format this as a JSON object.
+- Return the newsletter JSON object immediately.
+`)]
+        }, {
+          recursionLimit: 10
+        });
+      output = modelResponse.structuredResponse;
     }
   );
+  await handleRunTimeRequestRunnable.invoke({ newsRequest: newsRequest });
 
-  var content = finalState.messages[finalState.messages.length - 1].content;
-  /**
-   * Some GPT models will wrap the output array in an object, despite response formatting and strict prompting.
-   * Ex: { "results": [<< our data array >>] }
-   * Need to handle these edge cases gracefully in order to guarantee consistent output for users.
-   */
-  var output: Output = { markdown: '', html: '' };
-  if (typeof content === 'string') {
-    try {
-      var parsed = JSON.parse(content) as MessageContentComplex[];
-      if (parsed && typeof parsed === 'object') {
-        output = {
-          markdown: (parsed as any).markdown ?? '',
-          html: (parsed as any).html ?? ''
-        } as Output;
-      }
-    } catch (err: any) {
-      console.error("Failed to parse JSON:", err);
-      output = { error: err.message, markdown: '', html: '' };
-    }
-  }
-
-  console.log('output')
-  console.log(output)
-
-  await Actor.charge({ eventName: 'news-output', count: (JSON.stringify(output).length/10) });
+  await Actor.charge({ eventName: 'news-output', count: (JSON.stringify(output).length/100) });
 
   await Actor.pushData(output);
 } catch (e: any) {

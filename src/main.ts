@@ -1,8 +1,9 @@
 import { Actor } from 'apify';
+import log from '@apify/log';
 import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage } from "@langchain/core/messages";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
-import type { Input } from './types.js'
+import type { Input, Output } from './types.js'
 import { responseSchema } from './types.js';
 import { agentTools } from './tools.js';
 import { setContextVariable } from "@langchain/core/context";
@@ -40,18 +41,16 @@ const agent = createReactAgent({
 });
 
 try {
-  let output = {};
   const handleRunTimeRequestRunnable = RunnableLambda.from(
     async ({ newsRequest: newsRequest }) => {
       setContextVariable("newsRequest", newsRequest);
-      const modelResponse = await agent.invoke(
-      {
+      const modelResponse = await agent.invoke({
         messages: [new HumanMessage(`
           You are an expert news aggregator. Your task is to turn structured news data into a human-readable output.
 
           STEP 1: Based on the user's news request: "${newsRequest}", identify a 1-2 word search query that best represents what news they want.
 
-          STEP 2: Use fetch_news_tool ONCE with the search query to retrieve news stories.
+          STEP 2: Use fetch_news_tool with the search query to retrieve news stories.
 
           STEP 3: From the returned news stories:
           - If no stories are found, respond with: "Sorry, I couldn't find any news stories about [search query]."
@@ -63,16 +62,18 @@ try {
       }, {
         recursionLimit: 10
       });
-      output = modelResponse.structuredResponse;
+      return modelResponse.structuredResponse as Output;
     }
   );
-  await handleRunTimeRequestRunnable.invoke({ newsRequest: newsRequest });
+  const output: Output = await handleRunTimeRequestRunnable.invoke({ newsRequest: newsRequest });
+
+  log.info(JSON.stringify(output));
 
   await Actor.charge({ eventName: 'news-output', count: (JSON.stringify(output).length/100) });
 
   await Actor.pushData(output);
-} catch (e: any) {
-  console.log(e);
-  await Actor.pushData({ error: e.message });
+} catch (err: any) {
+  log.error(err.message);
+  await Actor.pushData({ error: err.message });
 }
 await Actor.exit();

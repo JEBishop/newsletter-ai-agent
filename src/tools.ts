@@ -2,15 +2,16 @@ import Parser from 'rss-parser';
 import { RSS_FEEDS } from './constants.js';
 import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
+import log from '@apify/log';
 
 const FetchNewsTool = tool(
     async (input) => {
       const parser = new Parser();
-      let results = [];
-      console.log(input)
+      log.info(JSON.stringify(input));
       
       const searchTerm = typeof input === 'string' ? input : input.topic;
       
+      let results = [];
       for (const feedUrl of RSS_FEEDS) {
         try {
           const url = `${feedUrl}${encodeURIComponent(searchTerm)}`

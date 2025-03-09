@@ -3,6 +3,12 @@ export interface Input {
   OPENAI_API_KEY: string;
 }
 
+export interface Output {
+  html: string;
+  flights: string;
+  error?: string;
+};
+
 export const responseSchema = {
   type: "object",
   properties: {

@@ -50,7 +50,7 @@ try {
 
           STEP 1: Based on the user's news request: "${newsRequest}", identify a 1-2 word search query that best represents what news they want.
 
-          STEP 2: Use fetch_news_tool with the search query to retrieve news stories.
+          STEP 2: Search the web for relevant news. You also have fetch_news_tool which will pull RSS feed data.
 
           STEP 3: From the returned news stories:
           - If no stories are found, respond with: "Sorry, I couldn't find any news stories about [search query]."

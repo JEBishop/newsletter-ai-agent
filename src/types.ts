@@ -20,15 +20,19 @@ export interface Output {
 export const responseSchema = {
   type: "object",
   properties: {
-    html: { type: "string" },
-    markdown: { type: "string" },
-    json: { type: "array", items: { type: "object", properties: {
-      title: { type: "string" },
-      source: { type: "string" },
-      link: { type: "string" },
-      summary: { type: "string" }
-    }, required: ["title", "source", "link", "summary"] } },
-    error: { type: "string", description: "Error message is something went wrong (optional)" }
+    stories: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          title: { type: "string" },
+          source: { type: "string" },
+          link: { type: "string" },
+          summary: { type: "string" }
+        },
+        required: ["title", "source", "link", "summary"]
+      }
+    }
   },
-  required: ["html", "markdown", "json"]
-}
+  required: ["stories"]
+};

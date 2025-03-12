@@ -3,12 +3,12 @@ import log from '@apify/log';
 import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage } from "@langchain/core/messages";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
-import type { Input, Output } from './types.js'
+import type { Input, Output, Story } from './types.js'
 import { responseSchema } from './types.js';
 import { agentTools } from './tools.js';
 import { setContextVariable } from "@langchain/core/context";
 import { RunnableLambda } from "@langchain/core/runnables";
-import { formatMarkdown } from './utils.js';
+import { formatHtml, formatMarkdown } from './utils.js';
 
 await Actor.init();
 
@@ -55,25 +55,26 @@ try {
 
           STEP 3: From the returned news stories:
           - If no stories are found, respond with: "Sorry, I couldn't find any news stories about [search query]."
-          - If stories are found, select up to 5 unique and important stories based on titles.
-
-          STEP 4: Format the selected stories into a newsletter-style with both markdown and HTML versions. Format this as a JSON object.
-          - Return the newsletter JSON object immediately.
+          - If stories are found, select atleast 5 unique and important stories based on titles.
+          - Return the selected stories as JSON object and stop any further processing.
         `)]
       }, {
         recursionLimit: 10
       });
-      return modelResponse.structuredResponse as Output;
+      return modelResponse.structuredResponse.stories as Story[];
     }
   );
-  const output: Output = await handleRunTimeRequestRunnable.invoke({ newsRequest: newsRequest });
+  const output: Story[] = await handleRunTimeRequestRunnable.invoke({ newsRequest: newsRequest });
 
-  log.info(JSON.stringify(output));
-  console.log(formatMarkdown(newsRequest, output))
+  const formattedOutput = {
+    html: formatHtml(newsRequest, output),
+    markdown: formatMarkdown(newsRequest, output),
+    json: output
+  }
 
   await Actor.charge({ eventName: 'news-output', count: (JSON.stringify(output).length/100) });
 
-  await Actor.pushData(output);
+  await Actor.pushData(formattedOutput);
 } catch (err: any) {
   log.error(err.message);
   await Actor.pushData({ error: err.message });

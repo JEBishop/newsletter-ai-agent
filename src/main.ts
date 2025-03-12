@@ -8,6 +8,7 @@ import { responseSchema } from './types.js';
 import { agentTools } from './tools.js';
 import { setContextVariable } from "@langchain/core/context";
 import { RunnableLambda } from "@langchain/core/runnables";
+import { formatMarkdown } from './utils.js';
 
 await Actor.init();
 
@@ -68,6 +69,7 @@ try {
   const output: Output = await handleRunTimeRequestRunnable.invoke({ newsRequest: newsRequest });
 
   log.info(JSON.stringify(output));
+  console.log(formatMarkdown(newsRequest, output))
 
   await Actor.charge({ eventName: 'news-output', count: (JSON.stringify(output).length/100) });
 

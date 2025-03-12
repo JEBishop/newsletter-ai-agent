@@ -30,5 +30,5 @@ export const responseSchema = {
     }, required: ["title", "source", "link", "summary"] } },
     error: { type: "string", description: "Error message is something went wrong (optional)" }
   },
-  required: ["html", "markdown"]
+  required: ["html", "markdown", "json"]
 }

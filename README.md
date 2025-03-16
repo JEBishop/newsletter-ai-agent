@@ -30,6 +30,9 @@ The actor expects the following input JSON:
 - **OPENAI_API_KEY** (string, optional): The OpenAI API key to use for summarization. You will be charged for usage if you don't provide your own key.
 
 ## Output Format
+
+### Be sure to check the "Storage > Key-value store output tab for the HTML/MD report files.
+
 **HTML Newsletter**
 The HTML content can be directly copied into an email message body to have a perfectly structed newsletter ready to send.
 ![HTML Newsletter](sample_newsletter.png)

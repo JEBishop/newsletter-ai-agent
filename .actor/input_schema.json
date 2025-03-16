@@ -8,7 +8,7 @@
             "type": "string",
             "description": "Your news request",
             "editor": "textfield",
-            "prefill": "What's going on with the war in Ukraine?"
+            "prefill": "What's going on with the USA tariffs?"
         },
         "OPENAI_API_KEY": {
             "title": "OpenAI API Key",

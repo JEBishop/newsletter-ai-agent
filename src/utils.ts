@@ -1,14 +1,14 @@
 import { Story } from "./types.js";
 
 export const formatMarkdown = (newsRequest: string, stories: Story[]) => {
-  const template = `# Newsletter - *${newsRequest}*<br/><br/>
+  const template = `# Newsletter - *${newsRequest}*\n\n
 ${stories.map(story => `
-<h2><a href='${story.link}'>${story.title}</a> | ${story.source}</h2><br/><br/>
-${story.summary}<br/><br/>
+<h2><a href='${story.link}'>${story.title}</a> | ${story.source}</h2>\n\n
+${story.summary}\n\n
 `).join('')}
 `;
 
-  return template.replace(/\n+/g, '').trim();
+  return template.trim();
 };
 
 

@@ -66,15 +66,14 @@ try {
   );
   const output: Story[] = await handleRunTimeRequestRunnable.invoke({ newsRequest: newsRequest });
 
-  const formattedOutput = {
-    html: formatHtml(newsRequest, output),
-    markdown: formatMarkdown(newsRequest, output),
-    json: output
-  }
+  await Actor.setValue('newsletter.html', formatHtml(newsRequest, output), { contentType: 'text/html' });
+  await Actor.setValue('newsletter.md', formatMarkdown(newsRequest, output), { contentType: 'text/markdown' });
+
+  log.info(JSON.stringify(output));
 
   await Actor.charge({ eventName: 'news-output', count: output.length });
-
-  await Actor.pushData(formattedOutput);
+  
+  await Actor.pushData(output);
 } catch (err: any) {
   log.error(err.message);
   await Actor.pushData({ error: err.message });

@@ -72,7 +72,7 @@ try {
     json: output
   }
 
-  await Actor.charge({ eventName: 'news-output', count: (JSON.stringify(output).length/100) });
+  await Actor.charge({ eventName: 'news-output', count: output.length });
 
   await Actor.pushData(formattedOutput);
 } catch (err: any) {

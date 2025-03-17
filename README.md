@@ -35,7 +35,7 @@ The actor expects the following input JSON:
 
 **HTML Newsletter**
 The HTML content can be directly copied into an email message body to have a perfectly structed newsletter ready to send.
-![HTML Newsletter](sample_newsletter.png)
+![HTML Newsletter](https://raw.githubusercontent.com/JEBishop/newsletter-ai-agent/main/sample_newsletter.png)
 ### JSON Output:
 ```json
 {
